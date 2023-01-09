@@ -55,6 +55,12 @@ HTTPS는 TCP 위에 SSL 계층이 있는 구조이므로 TCP 3-way Handshake 과
 5. Premaster Secret 복호화
 6. SSL Handshake 종료 + HTTPS 통신 시작
 
+(작성중)
+
+## HTTPS는 100% 안전한가
+
+
+
 #### references
 * https://inuplace.tistory.com/1086
 * https://kimmeh1.tistory.com/499
