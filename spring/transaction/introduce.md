@@ -209,7 +209,7 @@ REQUIRED와 비슷하며, 이미 시작된 트랜잭션이 있으면 참여한�
 중첩된 트랜잭션은 먼저 시작된 부모 트랜잭션의 커밋과 롤백에는 영향을 받지만, 자신의 커밋과 롤백은 부모 트랜잭션에게 영향을 주지 않는다.
 
 > REQUIRES_NEW와 NESTED 차이
-![](../../../../../../../var/folders/kr/3t9_nxz92lxgwr9c89_7bz9m0000gn/T/TemporaryItems/NSIRD_screencaptureui_TpJbFD/스크린샷 2023-01-15 08.42.41.png)
+![image](https://user-images.githubusercontent.com/94087228/212689975-6ff317a8-5294-44d4-b37c-0f6efafed6fd.png)
 
 예를 들면, 로그를 찍는 기능은 부가 기능이다. 만약 부가 기능에 문제가 생겨서 트랜잭션을 롤백해야하는 상황이다. 로그를 찍는 기능에 문제가 생겼다고 해서, 핵심 기능에 영향을 끼치면 안된다.
 
