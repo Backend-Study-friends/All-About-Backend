@@ -167,7 +167,7 @@ public interface TransactionDefinition {
 * **DataSourceTransactionManager** : Connection의 트랜잭션 API를 이용해서 트랜잭션을 관리해주는 트랜잭션 매니저
 * **JpaTransactionManager** : JPA를 이용하는 DAO에는 JpaTransactionManager를 사용한다. DataSourceTransactionManager가 제공하는 DataSource 레벨의
 트랜잭션 관리 기능을 동시에 제공한다.
-* **JmsTransactionManager**, CciTransactionManager : 스프링에서는 DB 뿐만 아니라 트랜잭션이 지원되는 JMS와 CCI를 위해서도 트랜잭션 매니저를 제공한다.
+* **JmsTransactionManager**, **CciTransactionManager** : 스프링에서는 DB 뿐만 아니라 트랜잭션이 지원되는 JMS와 CCI를 위해서도 트랜잭션 매니저를 제공한다.
 * **JtaTransactionManager** : 하나 이상의 DB 또는 트랜잭션 리소스가 참여하는 글로벌 트랜잭션을 적용하려면 JTA를 이용해야 한다.
 
 > **JMS** :  두 개 이상의 클라이언트 간에 메시지 통신을 위한 공통 API를 정의하는 자바 표준이다.
