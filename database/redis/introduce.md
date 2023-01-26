@@ -226,9 +226,11 @@ public class RedisTemplateTest {
 }
 ```
 
-#### 더 알아볼 것들
+## 분산 처리를 위한 Redis Cluster
 
-* 분산 처리를 위한 `Redis Cluster`
+* master를 여러 개 두어 분산 저장이 가능하며(Sharding), scale out 이 가능해진다.
+* master에 하나 이상의 slave를 둘 수 있음
+*
 
 #### references
 * https://wildeveloperetrain.tistory.com/21#recentComments
