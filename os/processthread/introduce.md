@@ -105,7 +105,166 @@ CPU 코어를 다른 프로세스로 전환하기 위해 현재 프로세스의 
 
 ![img_2.png](img_2.png)
 
+## 자바 코드에서 Thread-safe
+
+동기화 문제를 해결하기 위해서는 하나의 스레드 작업이 끝나기 전까지 다른 스레드에 제어권이 넘어가지 않도록 하는 것이 필요하다. 그래서 도입된 개념이 `임계영역` 및 `잠금(lock)`이다.
+
+* 임계영역 : 프로세스 간에 공유 자원 접근에 있어 문제가 발생하지 않도록 **한 번에 하나의 프로세스만 이용**하게끔 보장해줘야 하는 영역
+* 락(lock) : 하나의 스레드나 프로세스가 자원을 사용하고 있는 동안 잠금을 하여 접근을 못하게 하는 방식
+
+공유 데이터를 사용하는 코드 영역을 임계 영역으로 지정하고, 공유 데이터가 가지고 있는 잠금(lock)을 획득한 하나의 스레드만 이 영역 내의 코드를 수행할 수 있게끔 한 후, 잠금(lock)을 획득했던 스레드가 영역 내에서 작업이 끝나면 영역을 벗어나 잠금(lock)을 다시 반납힌다.
+그리고 다른 스레드가 반납된 잠금(lock)을 획득하여 임계영역 내에서 코드를 수행하게 된다.
+
+자바에서는 올바른 동기화(스레드 세이프)를 위해 `synchronized` 블럭, `java.util.concurrent.locks`, `java.util.concurrent.automic` 패키지를 지원하고 있다.
+
+### Synchronized 이용한 동기화
+
+Synchronized 키워드를 이용해 임계영역을 설정한다. (메소드 전체를 임계 영역으로 지정하거나, 특정한 영역에만 선언할 수 있다.)
+
+```java
+// 1. 메서드 선언, 메서드 전체를 임계영역으로 지정
+public synchronized void calcSum() {
+
+}
+
+// 2. 특정 영역에 선언, 특정 영역만 임계영역으로 지정
+public void calc() {
+    synchronized (참조변수) {
+    
+    }
+}
+```
+
+자세한 예제를 살펴보자. 아래는 `synchronized`를 사용하지 않은 예제이다.
+
+```java
+// synchronized를 사용하지 않은 예제
+public class SynchronizedSample {
+
+    public static void main(String[] args) {
+        Runnable run = new RunnableSample2();
+        new Thread(run).start();
+        new Thread(run).start();
+    }
+}
+
+class Account {
+
+    private int balance = 1000;
+
+    public int getBalance() {
+        return balance;
+    }
+
+    public void withdraw(int money) {
+        if (balance >= money) { // (1)
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            balance -= money;
+        }
+    }
+
+    static class RunnableSample2 implements Runnable {
+
+        Account account = new Account();
+
+        @Override
+        public void run() {
+            while (account.getBalance() > 0) {
+                // 100,200,300 중의 한 값을 임의로 선택하여 출금
+                int money = (int) (Math.random() * 3 + 1) * 100;
+                account.withdraw(money);
+                System.out.println("잔액 : "+ account.getBalance());
+            }
+        }
+    }
+}
+
+
+//결과 
+잔액 : 900
+잔액 : 900
+잔액 : 300
+잔액 : 300
+잔액 : -100
+잔액 : -100
+```
+
+위 예제에서 두 스레드는 하나의 계좌(Account)라는 공유 자원으로 돈을 인출하고 있다.
+
+두 스레드가 동시에 작업중일 때, 첫번째 스레드가 if문을 통과해서 돈을 출금하는 동안 두번째 스레드는 if문을 검사하는 중이다.
+두번째 스레드가 if문을 검사하는 순간에는 돈이 충분했지만, 출금을 진행하려고 하는 동안 첫번째 스레드가 이미 출금을 해버렸다. 그렇기에 음수 값이 나오는 것이다.
+
+위의 예제에 `synchronized`를 통해 락을 걸어서 문제를 해결해보자.
+
+```java
+// 1. 메소드에 선언
+public synchronized void withdraw(int money) {
+    if (balance >= money) {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        balance -= money;
+    }
+}
+
+// 2. 특정 영역만 임계구역으로 지정
+public void withdraw(int money) {
+    synchronized (this) {
+        if (balance >= money) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            balance -= money;
+        }
+    }
+}
+
+// 결과
+잔액 : 900
+잔액 : 700
+잔액 : 400
+잔액 : 300
+잔액 : 100
+잔액 : 0
+```
+
+위의 코드에서 withdraw 메서드만 수정했다. 여러번 실행해도 결과값이 음수가 나오지 않는다!
+이렇게 메서드 또는 특정 영역에 synchronized를 선언해 임계영역을 지정하고, lock을 획득한 스레드 작업이 끝나기 전까지 다른 스레드가 접근하지 못하도록 하면 동기화를 할 수 있다.
+
+(위의 코드에서 중요한 것. Account 클래스 내의 balance라는 변수가 public 이거나 setter 메서드가 있었다면 외부에서 접근 가능하므로 동기화 노력이 소용없어질 수 있다. 동기화를 위해서는 불변 객체로 선언해주는 것도 중요하다.)
+
+임계 영역은 멀티스레드 프로그램의 성능을 좌우하기에, 가능하면 메서드 전체에 lock보다 **synchronized 블럭을 사용하여 임계 영역을 최소화**하는 것이 좋다.
+
+### volatile 이용한 동기화
+
+멀티코어 프로세서에는 코어마다 캐시를 가지고 있다. 코어는 메모리에서 읽어온 값을 캐시에 저장하고, 캐시에서 값을 읽어서 작업한다.
+다시 같은 값을 읽어올 때에는 먼저 캐시에 있는지 확인하고 없을 때에만 메모리에서 읽어온다.
+그렇기 때문에, 멀티스레드 환경에서 메모리에 있는 공유자원을 사용하려 해도 캐시 때문에 원하는 값이 나오지 않을 수 있다.
+
+아래 그림은 CPU마다 캐시 영역을 가지고 있고, 스레드에서 값을 읽을 때마다 메인메모리가 아닌 캐시에 저장된 값을 읽어오는 것을 보여주는 그림이다.
+
+![img_3.png](img_3.png)
+
+변수 앞에 `volatile`을 붙이면 코어가 변수의 값을 읽어올 때 캐시 값을 읽어오는 것이 아니라 메모리에 있는 값을 읽어오기 때문에, 캐시와 메모리 간의 값 불일치 문제를 해결할 수 있다.
+
+![img_4.png](img_4.png)
+
+### Atomic
+
+`java.concurrent.atomic` 패키지를 보면 원자적 연산을 수행할 수 있는 클래스들이 있다. Atomic 클래스들은 `Compare And Swap(CAS)` 기반으로 되어 스레드 세이프하다.
+
+CAS란, 변수의 값을 할당하기 전에 기존의 값이 내가 예상한 값인지 확인하여 같은 경우에만 할당하는 알고리즘 기법이다. (값을 할당하기 전에 한번 더 검사)
+
 #### References
 * https://gmlwjd9405.github.io/2018/09/14/process-vs-thread.html
 * https://github.com/Seogeurim/CS-study/blob/main/contents/operating-system/README.md
 * https://wooono.tistory.com/522
+* https://yeoonjae.tistory.com/entry/Java-%EB%A9%80%ED%8B%B0%EC%93%B0%EB%A0%88%EB%93%9C-%EB%8F%99%EA%B8%B0%ED%99%94-synchronized
