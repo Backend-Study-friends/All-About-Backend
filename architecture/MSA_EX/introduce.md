@@ -317,3 +317,5 @@ eureka:
 
 - https://velog.io/@sorzzzzy/MSA-MSA%EB%A5%BC-%EC%9C%84%ED%95%9C-%EA%B8%B0%EC%88%A01-Spring-Boot-Spring-Cloud-Docker
 - https://happycloud-lee.tistory.com/207
+- https://bravenamme.github.io/2020/07/21/msa-netflix/
+- https://bcho.tistory.com/1252
